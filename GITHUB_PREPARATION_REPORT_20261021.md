@@ -487,7 +487,9 @@ These statements describe the **preparation** phase (before the push described i
 | --- | --- |
 | Remote | `git@github.com:SBeppiB/Minisa.git` (SSH) |
 | Branch | `main` (the only branch) |
-| Initial commit | `009da86` — *Initial import: Minisa learning-cycle candidate workspace* |
+| Initial commit | `6d2fa22` — *Initial import: Minisa learning-cycle candidate workspace* |
+| Second commit | `9aeab34` — *Record the publication of the initial import in the preparation report* |
+| Commit author / committer | `SBeppiB <166186623+SBeppiB@users.noreply.github.com>` (see §11.6) |
 | Files on the remote | **130** (exactly the list in §5) |
 | Content | 22,629 inserted lines, ≈ 1.03 MiB |
 | Licence | none — all rights reserved by default |
@@ -501,7 +503,7 @@ These statements describe the **preparation** phase (before the push described i
 | Repository is **empty** | `git ls-remote origin` | **0 refs** — no branches, no commits |
 | Repository is **private** | anonymous `GET https://api.github.com/repos/SBeppiB/Minisa` and `GET https://github.com/SBeppiB/Minisa` | **HTTP 404 for both** — a public repository would return 200 to an anonymous request; the owner account `SBeppiB` returns 200, so the 404 is the repository being private, not missing |
 | Nothing sensitive on the remote | `git ls-tree -r --name-only origin/main` | no `*.db`, `*.sqlite*`, `*.bak`, `*.tar*`, `*.pyc`, `*.log`, `*.pem`, `*.key`, `.env`, `__pycache__/`, `.pytest_cache/`, `SHA256SUMS`, `CAPTURE_*` |
-| Local and remote identical | `git rev-parse HEAD origin/main` | both `009da8678bace3285b4a7c5fbb9ac8d96df84d6a` |
+| Local and remote identical | `git rev-parse HEAD origin/main` | both `9aeab34ed15a224df9a0fcdfec8a89ff76769f98` |
 
 ### 11.3 Re-scan performed before staging
 
@@ -539,3 +541,27 @@ key was added to the GitHub account `SBeppiB` through GitHub's web settings page
 password, personal access token or API key was ever typed into chat, stored in the
 repository, or written to disk in this workspace. The GitHub CLI (`gh`) is not
 installed and was not needed.
+
+
+### 11.6 Author identity correction (2026-10-21, after the first push)
+
+The two commits above were originally authored with the machine's **global** git
+identity (`REMINISU FRANCHISE GIT <xiaeco1930@gmail.com>`), which is a personal
+address. The repository-local identity was corrected and the two commits were
+rebuilt with it:
+
+| Field | Value |
+| --- | --- |
+| Repository-local `user.name` | `SBeppiB` |
+| Repository-local `user.email` | `166186623+SBeppiB@users.noreply.github.com` |
+| Where it is stored | `.git/config` of this repository only — the global `~/.gitconfig` was **not** modified |
+| Global identity | unchanged (`REMINISU FRANCHISE GIT <xiaeco1930@gmail.com>`) |
+| Old commit → new commit | `009da86` → `6d2fa22`, `7b5c9e8` → `9aeab34` |
+| Preserved exactly | commit messages, file contents (identical trees), author dates and committer dates |
+| Remote update | `git push --force-with-lease=refs/heads/main:7b5c9e8392e30ddd2ca97827ddc6bff1454021a6 origin main` — the lease was set to the tip that was fetched and verified immediately beforehand, so the push could not have overwritten an unexpected remote state |
+| Recoverability | the original commits remain in the local reflog (`git reflog`) |
+| Verification after the push | local `main` and remote `refs/heads/main` both `9aeab34ed15a224df9a0fcdfec8a89ff76769f98`; working tree clean; the repository is still private (anonymous requests return 404) |
+
+The noreply address was taken from the account's public data (`login` and numeric
+id via the public GitHub API) and confirmed by the account owner against
+GitHub → Settings → Emails before it was used.
