@@ -5,8 +5,13 @@ commit to a **private** GitHub repository.
 
 **What was done.** A read-only audit of the whole workspace, a new `.gitignore`, a new
 `CONTRIBUTING.md`, and a verification of exactly what an initial import would contain.
-**No repository was created remotely, nothing was pushed, nothing was deployed, and
-no production or staged-release file was modified.**
+**No deployment happened and no production or staged-release file was modified.**
+
+> **Update — publication record (2026-10-21, after the preparation work):** the
+> repository was subsequently initialised locally, committed and pushed to the
+> **private** repository `github.com/SBeppiB/Minisa` (branch `main`, initial commit
+> `009da86`, 130 files). Sections 1–9 below describe the state *before* the push;
+> §11 records exactly what was published and what was verified at push time.
 
 ---
 
@@ -445,18 +450,20 @@ The only command executed against the live database was the read-only
 `sha256sum`/`stat` shown above; no query was run against its contents and none of
 its data is in the repository.
 
-The scratch git directory used for the dry-run checks is `/tmp/opencode/ignorecheck`
-(outside the workspace, no index entries). Delete it with
-`rm -rf /tmp/opencode/ignorecheck` when convenient.
+The scratch git directory used for the dry-run checks was `/tmp/opencode/ignorecheck`
+(outside the workspace, no index entries). It was deleted once the real repository
+existed.
 
 ---
 
 ## 10. Confirmations
 
-* **No GitHub repository was created.** No remote was created on GitHub or anywhere else.
-* **Nothing was pushed.** No push of any kind was attempted.
-* **No authentication to GitHub was performed.** No credential was read, stored or
-  printed.
+These statements describe the **preparation** phase (before the push described in §11).
+
+* **No GitHub repository was created during preparation.** The remote already existed.
+* **Nothing was pushed during preparation.** The push is recorded in §11.
+* **No authentication to GitHub was performed during preparation.** No credential was
+  read, stored or printed.
 * **No secret value appears in this report, in `.gitignore`, in `CONTRIBUTING.md`, or
   in any file in the workspace.** The scan in §4 reports filenames and categories
   only.
@@ -466,4 +473,69 @@ The scratch git directory used for the dry-run checks is `/tmp/opencode/ignorech
 * **No existing file was deleted, renamed, rewritten or overwritten**, and no Git
   history was created, rewritten or destroyed.
 * **No licence was added.**
-* The workspace is **not** yet a Git repository; the commands in §8 will make it one.
+* The workspace was **not** a Git repository at the end of preparation; §11 records the
+  initialisation and push that followed.
+
+
+---
+
+## 11. Publication record (2026-10-21)
+
+### 11.1 What was published
+
+| Item | Value |
+| --- | --- |
+| Remote | `git@github.com:SBeppiB/Minisa.git` (SSH) |
+| Branch | `main` (the only branch) |
+| Initial commit | `009da86` — *Initial import: Minisa learning-cycle candidate workspace* |
+| Files on the remote | **130** (exactly the list in §5) |
+| Content | 22,629 inserted lines, ≈ 1.03 MiB |
+| Licence | none — all rights reserved by default |
+
+### 11.2 Checks made immediately before the push
+
+| Check | Method | Result |
+| --- | --- | --- |
+| GitHub authentication | `ssh -T git@github.com` | `Hi SBeppiB! You've successfully authenticated` |
+| Repository exists | authenticated `git ls-remote origin` | access granted, repository exists |
+| Repository is **empty** | `git ls-remote origin` | **0 refs** — no branches, no commits |
+| Repository is **private** | anonymous `GET https://api.github.com/repos/SBeppiB/Minisa` and `GET https://github.com/SBeppiB/Minisa` | **HTTP 404 for both** — a public repository would return 200 to an anonymous request; the owner account `SBeppiB` returns 200, so the 404 is the repository being private, not missing |
+| Nothing sensitive on the remote | `git ls-tree -r --name-only origin/main` | no `*.db`, `*.sqlite*`, `*.bak`, `*.tar*`, `*.pyc`, `*.log`, `*.pem`, `*.key`, `.env`, `__pycache__/`, `.pytest_cache/`, `SHA256SUMS`, `CAPTURE_*` |
+| Local and remote identical | `git rev-parse HEAD origin/main` | both `009da8678bace3285b4a7c5fbb9ac8d96df84d6a` |
+
+### 11.3 Re-scan performed before staging
+
+The §4 scan was repeated over the exact 130 files that were staged, with extra
+attention to the categories that matter for a hosted repository:
+
+| Category | Occurrences | Files | Assessment |
+| --- | --- | --- | --- |
+| Tailscale addresses `100.108.164.57`, `100.123.208.117` | 27 | 9 | internal infrastructure detail; documentation only; acceptable for a private repository, and already listed in §7 item 5 |
+| Creator identifier `sbeppi` | 156 | 29 | mostly in host paths and the service owner `sbeppi:sbeppi`; the behaviour strings in `runtime/cognition/engine.py:91-96` and `runtime/cleanup_memories.py:26` were left unchanged on purpose (§7 item 1) |
+| Host paths `/home/sbeppi/…` | 114 | 23 | required for the runbook to be executable |
+| Production paths `/srv/minisa/…` | 183 | 25 | required for the runbook to be executable |
+| Systemd paths `/etc/systemd/…` | 38 | 16 | required for the runbook to be executable |
+| Database **file names** | 220 | 36 | references in prose and scripts only — no database file, and no database content, is present |
+| Backup / capture **file names** | 31 + 10 | 21 | references only — `ops/capture_minisa_recovery.py` *creates* those names at runtime; no artefact is included |
+| SHA-256 digests | 38 | 14 | digests of the manifest, the drop-in and source files |
+| E-mail addresses | 1 | 1 | `git@github.com` in the remote URL example in §8 — not an address |
+| `.pyc` files / caches | 0 | 0 | excluded by `.gitignore`, still on disk, never committed |
+
+### 11.4 State of production and the staged release after the push
+
+Unchanged and re-verified after the push: live database SHA-256 `8d7c11be…4508a0`,
+size 692224, mtime 2026-10-19 07:22:31 +0100; `minisa.service` active PID 1324 and
+`minisa-core.service` active PID 1007, neither restarted; the systemd drop-in still
+absent; staged release manifest `410d865e…9405` with 20/20 tracked files matching and
+its 54 `.pyc` files untouched. No deployment, migration, capture or
+service-management command was run at any point.
+
+### 11.5 Authentication method used
+
+An SSH key pair dedicated to GitHub was generated on this host
+(`~/.ssh/id_ed25519_github`, no passphrase) and a `Host github.com` block was added to
+`~/.ssh/config`; the pre-existing `Host minisa` block was left unchanged. The **public**
+key was added to the GitHub account `SBeppiB` through GitHub's web settings page. No
+password, personal access token or API key was ever typed into chat, stored in the
+repository, or written to disk in this workspace. The GitHub CLI (`gh`) is not
+installed and was not needed.
