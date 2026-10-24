@@ -188,6 +188,15 @@ class DreamWorker:
         self.owner = 'minisa-dream-'+uuid.uuid4().hex
         self._stop = threading.Event()
         self._thread = None
+        # Candidate-only: automatic research orchestrator
+        self._research_orch = None
+        try:
+            from runtime.research_orchestrator import ResearchOrchestrator
+            import os
+            if ResearchOrchestrator is not None:
+                self._research_orch = ResearchOrchestrator(workspace.root, getattr(workspace.db, 'path', None))
+        except Exception:
+            self._research_orch = None
 
     @staticmethod
     def escalation(snapshot):
@@ -266,6 +275,14 @@ class DreamWorker:
         w.maintain()
         self.last_tick_metrics["rebalance_seconds"]=time.perf_counter()-started
         w.sample_storage()
+        # Candidate-only: automatic policy-controlled research (no prompts)
+        try:
+            if getattr(self, '_research_orch', None) is not None:
+                import os
+                if os.environ.get('MINISA_RESEARCH_ENABLED', '').strip().lower() in {'1','true','yes','on'}:
+                    self._research_orch.run_once(max_tasks=1)
+        except Exception:
+            pass  # never block dreaming
         if self.model is None:
             return None
         w.schedule()
@@ -357,6 +374,13 @@ class DreamWorker:
                 w._audit(conn, 'dream.failed', {'category':category,'stage':failure_stage,
                                                 'kind':failure_kind,'latency':time.monotonic()-started},
                          w.revision(conn),job['job_id'])
-            LOGGER.exception('dream.failed job=%s category=%s stage=%s kind=%s',
+            LOGGER.warning('dream.failed job=%s category=%s stage=%s kind=%s',
                            job['job_id'], category, failure_stage, failure_kind)
             return {'status':'failed','category':category}
+
+
+# Candidate-only: automatic policy-controlled research during dreaming
+try:
+    from runtime.research_orchestrator import ResearchOrchestrator
+except Exception:
+    ResearchOrchestrator = None
