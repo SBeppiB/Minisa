@@ -1,0 +1,118 @@
+# Minisa candidate workspace — ignore rules for the private GitHub repository.
+#
+# Scope: this file only decides what an initial import would contain.
+# Nothing here deletes or moves a file on disk.
+#
+# Rules are deliberately narrow. Source code, tests, migrations, operational
+# scripts, runbooks and reports are NOT ignored.
+
+# --- Databases and their sidecars -----------------------------------------
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+*.sqlite-journal
+
+# --- Backups, recovery captures, rehearsal artefacts ----------------------
+/backups/
+/backup/
+/captures/
+/recovery/
+/rehearsal-*/
+minisa-recovery-*/
+SHA256SUMS
+SHA256SUMS.*
+CAPTURE_VERIFIED
+CAPTURE_INCOMPLETE
+file-state.tar
+file-manifest.json
+*.bak
+*.backup
+*.dump
+*.sql.gz
+*.tgz
+*.tar.gz
+
+# --- Credentials, keys, environment files ----------------------------------
+.env
+.env.*
+*.env
+!.env.example
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_rsa.*
+id_ecdsa*
+id_ed25519*
+id_dsa*
+secrets/
+credentials/
+.netrc
+.pgpass
+.htpasswd
+
+# --- Virtual environments ---------------------------------------------------
+.venv/
+venv/
+VENV/
+env/
+ENV/
+env.bak/
+.conda/
+
+# --- Caches, compiled artefacts, coverage -----------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+*.egg-info/
+.eggs/
+build/
+dist/
+node_modules/
+
+# --- Logs and temporary output ---------------------------------------------
+*.log
+logs/
+*.pid
+*.sock
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.*.sw?
+.DS_Store
+Thumbs.db
+desktop.ini
+retrieval-eval.json
+minisa-retrieval-report.json
+*.orig
+*.rej
+
+# --- Machine-specific local state ------------------------------------------
+*.local.json
+*.local.toml
+*.local.yaml
+*.pid

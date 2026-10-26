@@ -1,0 +1,5 @@
+# Candidate only. A 40s bounded model request plus child teardown can take 42s;
+# allow DreamWorker.stop() its documented 5s shutdown margin.
+[Service]
+WorkingDirectory=/home/sbeppi/minisa-releases/minisa-dream-recovery-candidate-20261018
+TimeoutStopSec=50
