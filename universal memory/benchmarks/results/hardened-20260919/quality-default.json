@@ -1,0 +1,135 @@
+{
+  "mode": "default",
+  "backend": "local",
+  "embedding": "hash-blake2s-384-v1",
+  "queries": 12,
+  "corpus_size": 24,
+  "recall_at_1": 0.25,
+  "recall_at_5": 0.8333333333333334,
+  "mrr_at_5": 0.513888888888889,
+  "rows": [
+    {
+      "query": "What did Alex buy?",
+      "rank": 2,
+      "returned": [
+        "Alex repaired a blue scooter yesterday.",
+        "Alex purchased a red bicycle yesterday."
+      ]
+    },
+    {
+      "query": "Which food must Mira avoid?",
+      "rank": 2,
+      "returned": [
+        "Mira likes eating apples.",
+        "Mira is allergic to peanuts.",
+        "Nia planted roses beside the garage.",
+        "Theo booked a restaurant for his birthday."
+      ]
+    },
+    {
+      "query": "How does Owen get to work?",
+      "rank": 3,
+      "returned": [
+        "Mira is allergic to peanuts.",
+        "Owen watches ships every evening.",
+        "Owen commutes by train every morning.",
+        "Lena enjoys loud concerts on weekends.",
+        "Theo cancelled the picnic because of heavy rainfall."
+      ]
+    },
+    {
+      "query": "Where did Nia lose the door key?",
+      "rank": 2,
+      "returned": [
+        "Nia planted roses beside the garage.",
+        "Nia misplaced her house keys in the garden.",
+        "The cat slept beside the fireplace.",
+        "The gardener purchased fertilizer for the lawn.",
+        "The physician prescribed antibiotics for the infection."
+      ]
+    },
+    {
+      "query": "What fuel does the car need?",
+      "rank": null,
+      "returned": [
+        "The cat slept beside the fireplace.",
+        "The gardener purchased fertilizer for the lawn.",
+        "The physician prescribed antibiotics for the infection.",
+        "The canine concealed its bone beneath the oak.",
+        "Theo cancelled the picnic because of heavy rainfall."
+      ]
+    },
+    {
+      "query": "What medicine did the doctor recommend?",
+      "rank": 3,
+      "returned": [
+        "The cat slept beside the fireplace.",
+        "The gardener purchased fertilizer for the lawn.",
+        "The physician prescribed antibiotics for the infection.",
+        "The canine concealed its bone beneath the oak.",
+        "Theo cancelled the picnic because of heavy rainfall."
+      ]
+    },
+    {
+      "query": "When is Sam's rescheduled meeting?",
+      "rank": 1,
+      "returned": [
+        "Sam's appointment was postponed until Friday.",
+        "Mira is allergic to peanuts.",
+        "Lena prefers a quiet room when studying.",
+        "The desktop monitor is six years old.",
+        "Sam bought tickets for a concert on Tuesday."
+      ]
+    },
+    {
+      "query": "What environment helps Lena learn?",
+      "rank": 2,
+      "returned": [
+        "Lena enjoys loud concerts on weekends.",
+        "Lena prefers a quiet room when studying."
+      ]
+    },
+    {
+      "query": "Where did the dog hide its treat?",
+      "rank": 1,
+      "returned": [
+        "The canine concealed its bone beneath the oak.",
+        "The cat slept beside the fireplace.",
+        "The gardener purchased fertilizer for the lawn.",
+        "The physician prescribed antibiotics for the infection.",
+        "The automobile requires gasoline."
+      ]
+    },
+    {
+      "query": "What accessibility does Iris require?",
+      "rank": 2,
+      "returned": [
+        "Iris wants larger windows in the office.",
+        "Iris uses a wheelchair and needs step-free entrances.",
+        "Theo cancelled the picnic because of heavy rainfall."
+      ]
+    },
+    {
+      "query": "How long can the portable computer run unplugged?",
+      "rank": null,
+      "returned": [
+        "The gardener purchased fertilizer for the lawn.",
+        "The cat slept beside the fireplace.",
+        "The physician prescribed antibiotics for the infection.",
+        "The canine concealed its bone beneath the oak.",
+        "The automobile requires gasoline."
+      ]
+    },
+    {
+      "query": "Why did Theo abandon the outdoor meal?",
+      "rank": 1,
+      "returned": [
+        "Theo cancelled the picnic because of heavy rainfall.",
+        "The cat slept beside the fireplace.",
+        "Theo booked a restaurant for his birthday.",
+        "The gardener purchased fertilizer for the lawn.",
+        "The canine concealed its bone beneath the oak."
+      ]
+    }
+  ]
+}

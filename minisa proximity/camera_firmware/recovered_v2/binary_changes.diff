@@ -1,0 +1,206 @@
+--- recovered_camera_v2
++++ minisa_eyes_binary
+@@ -44,76 +44,95 @@
+   udp.endPacket();
+ }
+ 
+-void printJPEGBase64(const uint8_t* data, size_t len) {
+-  static const char table[] =
+-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+-
+-  Serial.println("JPEG_BASE64_BEGIN");
+-
+-  int line = 0;
+-
+-  for (size_t i = 0; i < len; i += 3) {
+-    uint32_t v = ((uint32_t)data[i]) << 16;
+-
+-    bool b2 = i + 1 < len;
+-    bool b3 = i + 2 < len;
+-
+-    if (b2) v |= ((uint32_t)data[i + 1]) << 8;
+-    if (b3) v |= data[i + 2];
+-
+-    char out[4];
+-
+-    out[0] = table[(v >> 18) & 63];
+-    out[1] = table[(v >> 12) & 63];
+-    out[2] = b2 ? table[(v >> 6) & 63] : '=';
+-    out[3] = b3 ? table[v & 63] : '=';
+-
+-    Serial.write((uint8_t*)out, 4);
+-
+-    line += 4;
+-
+-    if (line >= 76) {
+-      Serial.println();
+-      line = 0;
++// A completed JPEG stays in PSRAM until reset. A host can request it again.
++// Never write binary data until an explicit request proves a reader is present.
++bool frameReady = false;
++char hostCommand[24] = {0};
++size_t hostCommandSize = 0;
++
++bool requestedFrame() {
++  bool requested = false;
++  while (Serial.available()) {
++    char c = Serial.read();
++    if (c == '\n') {
++      hostCommand[hostCommandSize] = 0;
++      if (strcmp(hostCommand, "MNSA:GET") == 0) requested = true;
++      hostCommandSize = 0;
++    } else if (c != '\r') {
++      if (hostCommandSize < sizeof(hostCommand) - 1)
++        hostCommand[hostCommandSize++] = c;
++      else hostCommandSize = 0;
+     }
+   }
+-
+-  if (line)
+-    Serial.println();
+-
+-  Serial.println("JPEG_BASE64_END");
++  return requested;
++}
++
++bool writeAll(const uint8_t* data, size_t length, uint32_t started) {
++  size_t sent = 0;
++  while (sent < length) {
++    if (!Serial || millis() - started >= 8000) return false;
++    size_t count = length - sent;
++    if (count > 256) count = 256;
++    size_t wrote = Serial.write(data + sent, count);
++    if (wrote > count) return false;
++    sent += wrote;
++    if (!wrote) delay(1);
++  }
++  return true;
++}
++
++bool sendJPEGOverUSB() {
++  uint32_t length = (uint32_t)jpegSize;
++  const uint8_t header[8] = {'M','N','S','A',
++    (uint8_t)length, (uint8_t)(length >> 8),
++    (uint8_t)(length >> 16), (uint8_t)(length >> 24)};
++  uint32_t started = millis();
++  // No diagnostic bytes between header and payload, including failure paths.
++  return writeAll(header, sizeof(header), started) &&
++         writeAll(jpegBuf, jpegSize, started);
+ }
+ 
+ void finishFrame() {
+-  if (!collecting || jpegSize < 4)
+-    return;
+-
+-  Serial.printf(
+-    "FRAME_COMPLETE id=%d chunks=%d bytes=%u\n",
+-    currentFrame,
+-    expectedChunk,
+-    (unsigned)jpegSize
+-  );
+-
+-  if (jpegBuf[0] == 0xFF && jpegBuf[1] == 0xD8) {
+-    Serial.println("JPEG:VALID_HEADER");
+-
+-    printJPEGBase64(jpegBuf, jpegSize);
+-
+-    Serial.println("CAPTURE:DONE");
+-
+-    while (true)
+-      delay(1000);
+-  }
+-
+-  Serial.println("JPEG:BAD_HEADER");
+-}
++  if (!collecting || jpegSize < 4) return;
++  Serial.printf("FRAME_COMPLETE id=%d chunks=%d bytes=%u\n",
++                currentFrame, expectedChunk, (unsigned)jpegSize);
++  if (jpegBuf[0] != 0xFF || jpegBuf[1] != 0xD8) {
++    Serial.println("JPEG:BAD_HEADER");
++    return;
++  }
++  Serial.println("JPEG:VALID_HEADER");
++  // Observed camera trailer: 00 followed by the JPEG length (uint32 LE).
++  // Keep TEG assembly unchanged; omit this metadata only from USB JPEG output.
++  if (jpegSize >= 9) {
++    size_t end = jpegSize - 5;
++    uint32_t declared = (uint32_t)jpegBuf[end+1] |
++      ((uint32_t)jpegBuf[end+2] << 8) |
++      ((uint32_t)jpegBuf[end+3] << 16) |
++      ((uint32_t)jpegBuf[end+4] << 24);
++    if (jpegBuf[end] == 0 && declared == end &&
++        jpegBuf[end-2] == 0xFF && jpegBuf[end-1] == 0xD9) {
++      jpegSize = end;
++      Serial.printf("JPEG:TRAILER_REMOVED bytes=5 jpeg=%u\n", (unsigned)jpegSize);
++    }
++  }
++  if (jpegBuf[jpegSize-2] != 0xFF || jpegBuf[jpegSize-1] != 0xD9) {
++    Serial.println("JPEG:BAD_END");
++    return;
++  }
++  frameReady = true;
++  collecting = false;
++  Serial.println("USB:FRAME_READY");
++}
++
++bool streamStarted = false;
++void startCamera();
+ 
+ void setup() {
+   Serial.begin(115200);
++  Serial.setTxTimeoutMs(10);
+   delay(1500);
+ 
+-  Serial.println("\nMINISA EYES v2");
++  Serial.println("\nMINISA EYES v2 / binary USB");
+ 
+   jpegBuf = (uint8_t*)ps_malloc(MAX_JPEG);
+ 
+@@ -127,6 +146,11 @@
+     (unsigned)ESP.getFreePsram()
+   );
+ 
++  startCamera();
++}
++
++void startCamera() {
++  udp.stop(); // Retry the same recovered handshake after discovery failure.
+   WiFi.mode(WIFI_STA);
+   WiFi.begin(SSID);
+ 
+@@ -201,9 +225,26 @@
+   sendPacket(streamPort, GET_STREAM, sizeof(GET_STREAM));
+ 
+   Serial.println("STREAM:REQUESTED");
++  streamStarted = true;
+ }
+ 
+ void loop() {
++  if (!jpegBuf) { delay(1000); return; }
++  if (!streamStarted) {
++    delay(3000);
++    Serial.println("DISCOVERY:RETRY");
++    startCamera();
++    return;
++  }
++
++  if (frameReady) {
++    if (requestedFrame() && Serial) {
++      if (sendJPEGOverUSB()) Serial.println("CAPTURE:DONE");
++    }
++    delay(1);
++    return;
++  }
++
+   int n = udp.parsePacket();
+ 
+   if (n <= 0) {
+@@ -268,6 +309,8 @@
+   if (frame != currentFrame) {
+     if (collecting)
+       finishFrame();
++
++    if (frameReady) return; // Keep completed bytes intact for USB retries.
+ 
+     currentFrame = frame;
+     expectedChunk = 0;

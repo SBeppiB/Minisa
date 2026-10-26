@@ -1,0 +1,7 @@
+.build/
+__pycache__/
+*.pyc
+v2/minisa_beacon_senses.db
+v3/minisa_beacon_senses.db
+validation-runs/
+dist/

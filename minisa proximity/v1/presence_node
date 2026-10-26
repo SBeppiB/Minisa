@@ -1,0 +1,281 @@
+import serial
+import time
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+
+# =========================
+# CONFIG
+# =========================
+
+PORT = "COM10"
+BAUD = 115200
+
+DB_FILE = Path("minisa_senses.db")
+
+PERSON = "SBeppi"
+SENSOR = "esp32-s3-ble"
+
+SMOOTHING_SAMPLES = 5
+
+
+# =========================
+# DATABASE
+# =========================
+
+db = sqlite3.connect(DB_FILE)
+
+db.execute("""
+CREATE TABLE IF NOT EXISTS sensory_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL,
+    sensor TEXT NOT NULL,
+    person TEXT,
+    event_type TEXT NOT NULL,
+    state TEXT,
+    zone TEXT,
+    previous_zone TEXT,
+    rssi INTEGER
+)
+""")
+
+db.execute("""
+CREATE INDEX IF NOT EXISTS idx_sensory_timestamp
+ON sensory_events(timestamp)
+""")
+
+db.execute("""
+CREATE INDEX IF NOT EXISTS idx_sensory_type
+ON sensory_events(event_type)
+""")
+
+db.commit()
+
+
+def save_event(
+    event_type,
+    state=None,
+    zone=None,
+    previous_zone=None,
+    rssi=None
+):
+    timestamp = datetime.now().astimezone().isoformat()
+
+    db.execute(
+        """
+        INSERT INTO sensory_events (
+            timestamp,
+            sensor,
+            person,
+            event_type,
+            state,
+            zone,
+            previous_zone,
+            rssi
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            timestamp,
+            SENSOR,
+            PERSON,
+            event_type,
+            state,
+            zone,
+            previous_zone,
+            rssi
+        )
+    )
+
+    db.commit()
+
+
+# =========================
+# PROXIMITY
+# =========================
+
+recent_rssi = []
+
+
+def smooth_rssi(rssi):
+    recent_rssi.append(rssi)
+
+    if len(recent_rssi) > SMOOTHING_SAMPLES:
+        recent_rssi.pop(0)
+
+    return round(sum(recent_rssi) / len(recent_rssi))
+
+
+def get_zone(rssi):
+
+    if rssi >= -45:
+        return "very_close"
+
+    if rssi >= -60:
+        return "nearby"
+
+    if rssi >= -75:
+        return "far"
+
+    return "very_far"
+
+
+# =========================
+# STATE
+# =========================
+
+last_state = None
+last_zone = None
+
+
+# =========================
+# STARTUP
+# =========================
+
+print("MINISA LOCAL SENSORY SERVICE")
+print("----------------------------")
+print(f"Database: {DB_FILE.resolve()}")
+print(f"Sensor:   {SENSOR}")
+print(f"Port:     {PORT}")
+print()
+
+while True:
+
+    try:
+
+        print(f"Connecting to ESP32 on {PORT}...")
+
+        with serial.Serial(PORT, BAUD, timeout=1) as esp:
+
+            time.sleep(2)
+
+            print("ESP32 CONNECTED")
+            print("Minisa presence sense active")
+            print()
+
+            while True:
+
+                raw = esp.readline()
+
+                if not raw:
+                    continue
+
+                line = raw.decode(
+                    "utf-8",
+                    errors="ignore"
+                ).strip()
+
+                if not line:
+                    continue
+
+                # =========================
+                # PRESENCE
+                # =========================
+
+                if line == "MINISA: SBEPPI PRESENT":
+
+                    if last_state != "present":
+
+                        last_state = "present"
+
+                        recent_rssi.clear()
+
+                        print("[MINISA] SBeppi detected")
+
+                        save_event(
+                            event_type="presence",
+                            state="present"
+                        )
+
+                elif line == "MINISA: SBEPPI GONE":
+
+                    if last_state != "gone":
+
+                        last_state = "gone"
+
+                        recent_rssi.clear()
+
+                        old_zone = last_zone
+                        last_zone = None
+
+                        print("[MINISA] SBeppi left detection range")
+
+                        save_event(
+                            event_type="presence",
+                            state="gone",
+                            previous_zone=old_zone
+                        )
+
+                # =========================
+                # RSSI
+                # =========================
+
+                elif line.startswith("Signal:"):
+
+                    try:
+
+                        rssi = int(
+                            line
+                            .replace("Signal:", "")
+                            .replace("dBm", "")
+                            .strip()
+                        )
+
+                    except ValueError:
+                        continue
+
+                    smoothed = smooth_rssi(rssi)
+
+                    zone = get_zone(smoothed)
+
+                    print(
+                        f"[MINISA] "
+                        f"{zone.upper():10} "
+                        f"{smoothed:4} dBm "
+                        f"(raw {rssi})"
+                    )
+
+                    # Only store meaningful zone changes
+                    if zone != last_zone:
+
+                        old_zone = last_zone
+
+                        last_zone = zone
+
+                        print(
+                            f">>> proximity changed: "
+                            f"{old_zone} -> {zone}"
+                        )
+
+                        save_event(
+                            event_type="proximity",
+                            state="present",
+                            zone=zone,
+                            previous_zone=old_zone,
+                            rssi=smoothed
+                        )
+
+    # =========================
+    # ESP32 DISCONNECTED
+    # =========================
+
+    except serial.SerialException as error:
+
+        print()
+        print(f"ESP32 unavailable: {error}")
+        print("Waiting 3 seconds...")
+
+        time.sleep(3)
+
+    # =========================
+    # CTRL+C
+    # =========================
+
+    except KeyboardInterrupt:
+
+        print()
+        print("Stopping Minisa sensory service...")
+
+        db.close()
+
+        break

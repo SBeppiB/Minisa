@@ -1,0 +1,144 @@
+{
+  "mode": "semantic",
+  "backend": "local",
+  "embedding": "sentence-transformers:sentence-transformers/all-MiniLM-L6-v2:384",
+  "queries": 12,
+  "corpus_size": 24,
+  "recall_at_1": 0.9166666666666666,
+  "recall_at_5": 1.0,
+  "mrr_at_5": 0.9583333333333334,
+  "rows": [
+    {
+      "query": "What did Alex buy?",
+      "rank": 1,
+      "returned": [
+        "Alex purchased a red bicycle yesterday.",
+        "Alex repaired a blue scooter yesterday.",
+        "Sam bought tickets for a concert on Tuesday.",
+        "Mira likes eating apples.",
+        "Nia misplaced her house keys in the garden."
+      ]
+    },
+    {
+      "query": "Which food must Mira avoid?",
+      "rank": 2,
+      "returned": [
+        "Mira likes eating apples.",
+        "Mira is allergic to peanuts.",
+        "Nia misplaced her house keys in the garden.",
+        "Lena prefers a quiet room when studying.",
+        "The physician prescribed antibiotics for the infection."
+      ]
+    },
+    {
+      "query": "How does Owen get to work?",
+      "rank": 1,
+      "returned": [
+        "Owen commutes by train every morning.",
+        "Owen watches ships every evening.",
+        "Mira is allergic to peanuts.",
+        "Alex repaired a blue scooter yesterday.",
+        "Theo booked a restaurant for his birthday."
+      ]
+    },
+    {
+      "query": "Where did Nia lose the door key?",
+      "rank": 1,
+      "returned": [
+        "Nia misplaced her house keys in the garden.",
+        "Nia planted roses beside the garage.",
+        "The canine concealed its bone beneath the oak.",
+        "Iris wants larger windows in the office.",
+        "The cat slept beside the fireplace."
+      ]
+    },
+    {
+      "query": "What fuel does the car need?",
+      "rank": 1,
+      "returned": [
+        "The automobile requires gasoline.",
+        "The bicycle requires new tyres.",
+        "The cat slept beside the fireplace.",
+        "The physician prescribed antibiotics for the infection.",
+        "The gardener purchased fertilizer for the lawn."
+      ]
+    },
+    {
+      "query": "What medicine did the doctor recommend?",
+      "rank": 1,
+      "returned": [
+        "The physician prescribed antibiotics for the infection.",
+        "The gardener purchased fertilizer for the lawn.",
+        "The canine concealed its bone beneath the oak.",
+        "The cat slept beside the fireplace.",
+        "Theo cancelled the picnic because of heavy rainfall."
+      ]
+    },
+    {
+      "query": "When is Sam's rescheduled meeting?",
+      "rank": 1,
+      "returned": [
+        "Sam's appointment was postponed until Friday.",
+        "Sam bought tickets for a concert on Tuesday.",
+        "Mira is allergic to peanuts.",
+        "Lena prefers a quiet room when studying.",
+        "The desktop monitor is six years old."
+      ]
+    },
+    {
+      "query": "What environment helps Lena learn?",
+      "rank": 1,
+      "returned": [
+        "Lena prefers a quiet room when studying.",
+        "Lena enjoys loud concerts on weekends.",
+        "Nia misplaced her house keys in the garden.",
+        "Mira likes eating apples.",
+        "Iris uses a wheelchair and needs step-free entrances."
+      ]
+    },
+    {
+      "query": "Where did the dog hide its treat?",
+      "rank": 1,
+      "returned": [
+        "The canine concealed its bone beneath the oak.",
+        "The physician prescribed antibiotics for the infection.",
+        "Nia misplaced her house keys in the garden.",
+        "The cat slept beside the fireplace.",
+        "The gardener purchased fertilizer for the lawn."
+      ]
+    },
+    {
+      "query": "What accessibility does Iris require?",
+      "rank": 1,
+      "returned": [
+        "Iris uses a wheelchair and needs step-free entrances.",
+        "Iris wants larger windows in the office.",
+        "Lena prefers a quiet room when studying.",
+        "Nia misplaced her house keys in the garden.",
+        "Mira is allergic to peanuts."
+      ]
+    },
+    {
+      "query": "How long can the portable computer run unplugged?",
+      "rank": 1,
+      "returned": [
+        "The laptop battery lasts six hours.",
+        "The desktop monitor is six years old.",
+        "The cat slept beside the fireplace.",
+        "The physician prescribed antibiotics for the infection.",
+        "Theo cancelled the picnic because of heavy rainfall."
+      ]
+    },
+    {
+      "query": "Why did Theo abandon the outdoor meal?",
+      "rank": 1,
+      "returned": [
+        "Theo cancelled the picnic because of heavy rainfall.",
+        "Theo booked a restaurant for his birthday.",
+        "Nia misplaced her house keys in the garden.",
+        "The gardener purchased fertilizer for the lawn.",
+        "The canine concealed its bone beneath the oak."
+      ]
+    }
+  ]
+}

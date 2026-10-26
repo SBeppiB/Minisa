@@ -1,0 +1,23 @@
+{
+  "port": "COM10",
+  "baud": 115200,
+  "database": "minisa_senses.db",
+  "sensor": "esp32-s3-ble",
+  "person": "SBeppi",
+  "strong_change_db": 6,
+  "thresholds": [
+    -45,
+    -60,
+    -75
+  ],
+  "hysteresis_db": 0.5,
+  "gone_confirm_seconds": 0.8,
+  "link_timeout_seconds": 5,
+  "reconnect_seconds": 2,
+  "window_seconds": 1.5,
+  "min_observations": 3,
+  "agreement": 0.75,
+  "confirm_seconds": 1.0,
+  "strong_confirm_seconds": 0.6,
+  "target": "phone"
+}

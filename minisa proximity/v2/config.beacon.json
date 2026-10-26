@@ -1,0 +1,20 @@
+{
+  "port": "COM10",
+  "baud": 115200,
+  "database": "minisa_beacon_senses.db",
+  "sensor": "esp32-s3-ble",
+  "person": "Minisa-Test-01",
+  "alpha": 0.4,
+  "fast_alpha": 0.85,
+  "strong_change_db": 12,
+  "thresholds": [
+    -45,
+    -60,
+    -75
+  ],
+  "hysteresis_db": 3,
+  "gone_confirm_seconds": 0.8,
+  "link_timeout_seconds": 5,
+  "reconnect_seconds": 2,
+  "target": "beacon"
+}
